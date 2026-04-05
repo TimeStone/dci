@@ -1,0 +1,6 @@
+#!/bin/bash
+# 获取脚本所在的目录
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# 在该目录下执行 python 模块
+python -m dci "$@"

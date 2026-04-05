@@ -1,0 +1,57 @@
+{
+  "meta": {
+    "version": "1.0",
+    "desc": "Gerrit 触发配置主文件，定义流水线与文件路径的映射关系"
+  },
+  "global_ignore": {
+    "desc": "全局忽略规则，所有流水线默认继承这些忽略项",
+    "paths": [
+      ".*\\.md$",
+      "docs/.*",
+      "LICENSE",
+      "\\.gitignore"
+    ]
+  },
+  "pipelines": {
+    "p1_pipeline": {
+      "desc": "P1业务模块流水线",
+      "mandatory_default": true,
+      "rules": [
+        {
+          "id": "rule_core",
+          "desc": "repo1/aa全部， repo1/bb/*.c, 忽略repo1:cc",
+          "match_paths": [
+            "gerrit_repo1:aa/.*",
+            "gerrit_repo1:bb/.*?\\.c"
+          ],
+          "ignore_paths": [
+            "gerrit_repo1:cc/.*"
+          ],
+          "mandatory": true
+        },
+        {
+          "id": "rule_common",
+          "desc": "匹配公共库变更，作为可选检查",
+          "match_paths": [
+            "gerrit_repo2:.*"
+          ],
+          "mandatory": false
+        }
+      ]
+    },
+    "p2_pipeline": {
+      "desc": "P2业务模块流水线",
+      "mandatory_default": false,
+      "rules": [
+        {
+          "id": "rule_fe",
+          "desc": "前端核心目录变更",
+          "match_paths": [
+            "gerrit_repo2:aa/.*"
+          ],
+          "mandatory": true
+        }
+      ]
+    }
+  }
+}
