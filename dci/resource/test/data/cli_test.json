@@ -1,0 +1,67 @@
+{
+  "gerrit": {
+    "labels_get": {
+      "labels": {
+        "Verified": {
+          "recommended": { "name": "CI Bot" },
+          "value": 1
+        },
+        "Code-Review": {
+          "approved": { "name": "Manager" },
+          "value": 2
+        }
+      }
+    },
+    "score_update_success": {
+      "labels": { "Verified": 1 }
+    },
+    "checks_get_list": [
+      {
+        "checkerUuid": "my-checker-001",
+        "state": "RUNNING",
+        "message": "pipeline is running..."
+      },
+      {
+        "checkerUuid": "static-check-002",
+        "state": "SUCCESSFUL",
+        "message": "all clean"
+      }
+    ],
+    "check_update_success": {
+      "checkerUuid": "my-checker-001",
+      "state": "SUCCESSFUL"
+    }
+  },
+  "jenkins": {
+    "queue_get": {
+      "items": [
+        {
+          "id": 99,
+          "task": { "name": "my-deploy-job" },
+          "actions": [
+            {
+              "parameters": [
+                { "name": "GERRIT_NAME", "value": "my-repo" },
+                { "name": "GERRIT_CHANGE_NUMBER", "value": "12345" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "computer_get": {
+      "computer": [
+        {
+          "executors": [
+            {
+              "currentExecutable": {
+                "number": 42,
+                "url": "http://jenkins.example.com/job/my-build-job/42/"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
