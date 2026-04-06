@@ -5,8 +5,8 @@ import re
 import sys
 from . import __version__
 from .ci.jenkins import JenkinsClient
-from .repo.gerrit import GerritClient, get_gerrit_files
-from .common.settings import GlobalSettings, ENV_VAR_LIST, IS_DRY_RUN
+from .repo.gerrit import GerritClient
+from .common.settings import settings, ENV_VAR_LIST, IS_DRY_RUN
 from .common.utils import info_color, print_banner, load_json_file
 from requests.auth import HTTPBasicAuth
 from .trigger import should_trigger_pipeline, trigger_jenkins_job
@@ -58,12 +58,12 @@ def trigger(ctx, config, dry_run):
         sys.exit(1)
         
     # 提取认证信息
-    jenkins_url = global_conf.get('jenkins_url')
-    jenkins_user = global_conf.get('jenkins_user')
-    jenkins_token = global_conf.get('jenkins_token')
-    gerrit_url = global_conf.get('gerrit_url')
-    gerrit_user = global_conf.get('gerrit_user')
-    gerrit_token = global_conf.get('gerrit_token')
+    jenkins_url = settings.JENKINS_URL
+    jenkins_user = settings.JENKINS_USER
+    jenkins_token = settings.JENKINS_PASSWORD
+    gerrit_url = settings.GERRIT_URL
+    gerrit_user = settings.GERRIT_USER
+    gerrit_token = settings.GERRIT_PASSWORD
     
     # 校验必要配置
     if not all([jenkins_url, jenkins_user, jenkins_token, gerrit_url]):
@@ -91,7 +91,9 @@ def trigger(ctx, config, dry_run):
         sys.exit(1)
         
     # 4. 获取变更文件列表
-    changed_files = get_gerrit_files(gerrit_url, gerrit_auth, change_id, patchset_num)
+    client = GerritClient()  # 会自动读取 settings 里的配置
+    changed_files = client.get_gerrit_files(change_id, patchset_num)
+    #changed_files = get_gerrit_files(gerrit_url, gerrit_auth, change_id, patchset_num)
     if not changed_files:
         info_color('warn', "未检测到变更文件，流程结束。")
         return

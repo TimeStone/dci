@@ -1,8 +1,8 @@
 {
   "gerrit_url": "http://localhost:8080",
   "gerrit_user": "admin",
-  "gerrit_token": "xxx",
+  "gerrit_password": "xxx",
   "jenkins_url": "http://localhost:8080",
   "jenkins_user": "admin",
-  "jenkins_token": "your_jenkins_api_token_here"
+  "jenkins_password": "your_jenkins_api_token_here"
 }

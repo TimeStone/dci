@@ -18,18 +18,26 @@ ENV_VAR_LIST = [
 
 class GlobalSettings:
     def __init__(self, config_path=None):
-        # 默认路径
         if not config_path:
-            # 假设 conf 文件夹与 common 同级或在上一级
             config_path = os.path.join(os.path.dirname(__file__), '..', 'conf', 'conf_global.json')
         
         self.config_path = os.path.abspath(config_path)
+        self.user_config_path = os.path.join(os.path.expanduser("~"), ".dci.json")
+        
+        # 1. 字典定义
+        self.CONFIG_DICT = {}
+        self.USER_CONFIG_DICT = {}
+        
+        # 保留原有硬编码成员变量
         self.GERRIT_URL = ""
+        self.GERRIT_USER = ""
+        self.GERRIT_PASSWORD = ""
         self.JENKINS_URL = ""
-        self.USER = ""
-        self.API_TOKEN = ""
+        self.JENKINS_USER = ""
+        self.JENKINS_PASSWORD = ""        
         
         self._load_config()
+        self._load_user_config()
 
     def _load_config(self):
         if not os.path.exists(self.config_path):
@@ -40,38 +48,55 @@ class GlobalSettings:
             with open(self.config_path, 'r', encoding='utf-8') as f:
                 config = json.load(f)
             
-            self.GERRIT_URL = config.get('gerrit_url', '')
-            self.JENKINS_URL = config.get('jenkins_url', '')
-            self.USER = config.get('user', '')
-            self.API_TOKEN = config.get('api_token', '')
+            self.CONFIG_DICT.update(config)
             
+            # 保留原有的硬编码成员赋值
+            self.GERRIT_URL = config.get('gerrit_url', '')
+            self.GERRIT_USER = config.get('gerrit_user', '')
+            self.GERRIT_PASSWORD = config.get('gerrit_password', '')
+            self.JENKINS_URL = config.get('jenkins_url', '')
+            self.JENKINS_USER = config.get('jenkins_user', '')
+            self.JENKINS_PASSWORD = config.get('jenkins_password', '')
             info_color('notes', f"已加载全局配置: {self.config_path}")
             
         except Exception as e:
             info_color('error', f"加载全局配置失败: {e}")
 
+    def _load_user_config(self):
+        if not os.path.exists(self.user_config_path):
+            return
+        try:
+            with open(self.user_config_path, 'r', encoding='utf-8') as f:
+                user_config = json.load(f)
+                
+            self.USER_CONFIG_DICT.update(user_config)
+            info_color('notes', f"已加载用户配置: {self.user_config_path}")
+            
+        except Exception as e:
+            info_color('error', f"加载用户配置失败: {e}")
 
+    def get_config(self, key, defaultValue=None):
+        """
+        获取配置项
+        优先级：1. 环境变量 -> 2. 用户配置 -> 3. 全局配置 -> 4. 默认值
+        """
+        # 1. 优先查环境变量 (将 key 转为全大写，符合环境变量常识，如 gerrit_url -> GERRIT_URL)
+        env_key = key.upper()
+        env_val = os.getenv(env_key)
+        if env_val is not None:
+            return env_val
 
-def get_job_params(env_list=ENV_VAR_LIST):
-    """从系统环境变量中提取 Gerrit 相关参数"""
-    params = {}
-    missing_vars = []
-    
-    for key in env_list:
-        val = os.getenv(key)
-        if val:
-            params[key] = val
-        else:
-            # 仅记录关键变量缺失，非关键变量可选
-            if key in ["GERRIT_CHANGE_ID", "GERRIT_PATCHSET_NUMBER"]:
-                missing_vars.append(key)
-    
-    if missing_vars:
-        info_color('warn', f"缺少关键环境变量: {', '.join(missing_vars)}")
+        # 2. 其次查用户配置 ~/.dci.json
+        if key in self.USER_CONFIG_DICT:
+            return self.USER_CONFIG_DICT[key]
         
-    return params
+        # 3. 再者查全局配置
+        if key in self.CONFIG_DICT:
+            return self.CONFIG_DICT[key]
+        
+        # 4. 都找不到，返回默认值
+        return defaultValue
 
 
-# 单例模式，供其他模块导入使用
+# 单例模式
 settings = GlobalSettings()
-
